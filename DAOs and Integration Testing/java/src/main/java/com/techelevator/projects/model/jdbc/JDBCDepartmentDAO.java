@@ -5,6 +5,7 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
@@ -38,8 +39,8 @@ public class JDBCDepartmentDAO implements DepartmentDAO {
 	@Override
 	public List<Department> searchDepartmentsByName(String nameSearch) {
 		List<Department> result = new ArrayList<>();
-		String sql = "SELECT name, department_id FROM department WHERE name=?";
-		SqlRowSet departments = jdbcTemplate.queryForRowSet(sql, nameSearch);
+		String sql = "SELECT name, department_id FROM department WHERE name ILIKE ?";
+		SqlRowSet departments = jdbcTemplate.queryForRowSet(sql, "%" + nameSearch + "%");
 		while (departments.next()) {
 
 			result.add(mapRowToDepartment(departments));
@@ -48,9 +49,17 @@ public class JDBCDepartmentDAO implements DepartmentDAO {
 	}
 
 	@Override
-	public void saveDepartment(Department updatedDepartment) {
-		String sql = "UPDATE Department " + "Set name = ?  WHERE department_id =?;";
-		jdbcTemplate.update(sql,updatedDepartment.getName(), updatedDepartment.getId());
+	public boolean saveDepartment(Department updatedDepartment) {
+		boolean success = false;
+		String sql = "UPDATE Department " + "Set name = ?  WHERE department_id = ?;";
+		try {
+			jdbcTemplate.update(sql, updatedDepartment.getName(), updatedDepartment.getId());
+			success = true;
+		} catch (DataIntegrityViolationException f) {
+			// result defaults to false
+		}
+
+		return success;
 
 	}
 
@@ -67,11 +76,11 @@ public class JDBCDepartmentDAO implements DepartmentDAO {
 	@Override
 	public Department getDepartmentById(Long id) {
 		Department result = null;
-		String sql = "SELECT name FROM department WHERE department_id = ?;";
-		SqlRowSet departments = jdbcTemplate.queryForRowSet(sql,id);
-		if(departments.next()) {
-		result=	mapRowToDepartment(departments);
-			
+		String sql = "SELECT name, department_id FROM department WHERE department_id = ?;";
+		SqlRowSet departments = jdbcTemplate.queryForRowSet(sql, id);
+		if (departments.next()) {
+			result = mapRowToDepartment(departments);
+
 		}
 		return result;
 	}
@@ -82,6 +91,5 @@ public class JDBCDepartmentDAO implements DepartmentDAO {
 		d.setId(rows.getLong("department_id"));
 		d.setName(rows.getString("name"));
 		return d;
-
 	}
 }

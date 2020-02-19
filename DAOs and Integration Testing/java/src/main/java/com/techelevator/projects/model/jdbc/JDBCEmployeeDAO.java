@@ -36,7 +36,7 @@ public class JDBCEmployeeDAO implements EmployeeDAO {
 	public List<Employee> searchEmployeesByName(String firstNameSearch, String lastNameSearch) {
 		List<Employee> employees= new ArrayList<>();
 		String sql="SELECT first_name,last_name, employee_id, department_id, birth_date,gender,hire_date "
-				+ "FROM employee WHERE first_name= ? AND last_name=?";
+				+ "FROM employee WHERE first_name ILIKE ? AND last_name ILIKE ?";
 		SqlRowSet results= jdbcTemplate.queryForRowSet(sql,firstNameSearch,lastNameSearch);
 		while(results.next()) {
 			employees.add(mapRowToEmployee(results));
@@ -50,7 +50,7 @@ public class JDBCEmployeeDAO implements EmployeeDAO {
 	public List<Employee> getEmployeesByDepartmentId(long id) {
 		List<Employee> employees= new ArrayList<>();
 		String sql="SELECT first_name,last_name, employee_id, department_id, birth_date,gender,hire_date "
-				+ "FROM employee WHERE department_id=?;";
+				+ "FROM employee WHERE department_id = ?;";
 		SqlRowSet results= jdbcTemplate.queryForRowSet(sql,id);
 		while(results.next()) {
 			employees.add(mapRowToEmployee(results));
@@ -78,7 +78,7 @@ public class JDBCEmployeeDAO implements EmployeeDAO {
 		List<Employee> employees= new ArrayList<>();
 		String sql="SELECT first_name,last_name, employee.employee_id, department_id, birth_date,gender,hire_date "
 				+ "FROM employee JOIN project_employee ON project_employee.employee_id = employee.employee_id "
-				+ "WHERE project_employee.project_id =?;";
+				+ "WHERE project_employee.project_id = ?;";
 		SqlRowSet results= jdbcTemplate.queryForRowSet(sql,projectId);
 		while(results.next()) {
 			employees.add(mapRowToEmployee(results));
@@ -90,6 +90,20 @@ public class JDBCEmployeeDAO implements EmployeeDAO {
 	public void changeEmployeeDepartment(Long employeeId, Long departmentId) {
 		String sql = "UPDATE employee " + "Set department_id = ?  WHERE employee_id =?;";
 		jdbcTemplate.update(sql,departmentId, employeeId);
+	}
+	
+	
+	public Employee createEmployee(Employee newEmployee) {
+		String sql ="INSERT INTO employee (department_id, first_name, last_name, birth_date, hire_date, gender)"
+				+ " VALUES (?, ?, ?, ?, ?, ?)RETURNING employee_id;";
+		SqlRowSet employees = jdbcTemplate.queryForRowSet(sql, newEmployee.getDepartmentId(),
+				newEmployee.getFirstName(), newEmployee.getLastName(), newEmployee.getBirthDay(),
+				newEmployee.getHireDate(),newEmployee.getGender());
+		if (employees.next()) {
+		newEmployee.setId(employees.getLong("employee_id"));
+		}
+		return newEmployee;
+		
 	}
 
 	private Employee mapRowToEmployee(SqlRowSet rows) {
