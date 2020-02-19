@@ -37,7 +37,7 @@ public class JDBCEmployeeDAO implements EmployeeDAO {
 		List<Employee> employees= new ArrayList<>();
 		String sql="SELECT first_name,last_name, employee_id, department_id, birth_date,gender,hire_date "
 				+ "FROM employee WHERE first_name ILIKE ? AND last_name ILIKE ?";
-		SqlRowSet results= jdbcTemplate.queryForRowSet(sql,firstNameSearch,lastNameSearch);
+		SqlRowSet results= jdbcTemplate.queryForRowSet(sql,"%" + firstNameSearch + "%","%" + lastNameSearch + "%");
 		while(results.next()) {
 			employees.add(mapRowToEmployee(results));
 			
@@ -88,7 +88,7 @@ public class JDBCEmployeeDAO implements EmployeeDAO {
 	
 	@Override
 	public void changeEmployeeDepartment(Long employeeId, Long departmentId) {
-		String sql = "UPDATE employee " + "Set department_id = ?  WHERE employee_id =?;";
+		String sql = "UPDATE employee SET department_id = ? WHERE employee_id = ?;";
 		jdbcTemplate.update(sql,departmentId, employeeId);
 	}
 	
