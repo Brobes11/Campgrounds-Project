@@ -91,7 +91,7 @@ public class JdbcDepartmentDAOTest {
 		assertTrue(success);
 	}
 	@Test
-	public void getAllDepartmentsReturnsCorrectAmount() {
+	public void getDepartmentsByNameReturnsCorrectAmount() {
 		
 		for (int i = 0 ; i < 100; i++) {
 			Department newD = createTestDepartment();
@@ -103,6 +103,22 @@ public class JdbcDepartmentDAOTest {
 		
 		assertEquals(100,testAllDepartments.size());
 		
+	}
+	
+	@Test
+	public void getAllDepartments_returns_all_departments() {
+		JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+		jdbcTemplate.update("TRUNCATE department CASCADE;");
+		
+		for (int i = 0 ; i < 100; i++) {
+			Department newD = createTestDepartment();
+			newD.setName(newD.getName() + i);
+			dao.createDepartment(newD);
+		
+		}
+		List<Department> testAllDepartments = dao.getAllDepartments();
+		
+		assertEquals(100,testAllDepartments.size());	
 	}
 	
 
