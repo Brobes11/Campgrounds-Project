@@ -20,13 +20,14 @@ public interface ProjectDAO {
 	 * @param projectId the project to remove the employee from
 	 * @param employeeId the employee to remove
 	 */
-	public void removeEmployeeFromProject(Long projectId, Long employeeId);
+	public boolean removeEmployeeFromProject(Long projectId, Long employeeId);
 
 	/**
 	 * Assign an employee to a project
 	 * 
 	 * @param projectId the project to put the employee on
 	 * @param employeeId the employee to assign
+	 * @return 
 	 */
-	public void addEmployeeToProject(Long projectId, Long employeeId);
+	public boolean addEmployeeToProject(Long projectId, Long employeeId);
 }
