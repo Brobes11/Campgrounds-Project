@@ -9,8 +9,8 @@ public class CampgroundCLI {
 	public static void main(String[] args) {
 		BasicDataSource dataSource = new BasicDataSource();
 		dataSource.setUrl("jdbc:postgresql://localhost:5432/campground");
-		dataSource.setUsername("postgres");
-
+		dataSource.setUsername(System.getenv("DB_USERNAME"));
+		dataSource.setPassword(System.getenv("DB_PASSWORD"));
 		CampgroundCLI application = new CampgroundCLI(dataSource);
 		application.run();
 	}
