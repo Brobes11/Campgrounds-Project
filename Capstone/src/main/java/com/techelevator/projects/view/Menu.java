@@ -45,11 +45,11 @@ public class Menu {
 		out.println();
 		for(int i = 0; i < options.length; i++) {
 			int optionNum = i+1;
-			//if(options[i] == "Quit") {
-			//	out.print("Q) " + options[i]);
-			//} else {
+			if(options[i] == "Quit") {
+				out.print("Q) " + options[i]);
+			} else {
 			out.println(optionNum+") "+options[i]);
-			//}
+			}
 		}
 		out.print("\nPlease choose an option >>> ");
 		out.flush();

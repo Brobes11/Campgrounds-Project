@@ -1,5 +1,6 @@
 package com.techelevator.model;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public class Reservation {
@@ -9,7 +10,24 @@ public class Reservation {
 	private LocalDate startOfRes;
 	private LocalDate endDate;
 	private LocalDate createDate;
+	private BigDecimal totalcost;
+	private int duration;
 	
+	
+	public int getDuration() {
+		
+		return duration;
+	}
+	public void setDuration(int duration) {
+		this.duration = duration;
+	}
+	public BigDecimal getTotalcost() {
+		
+		return totalcost;
+	}
+	public void setTotalcost(BigDecimal totalcost) {
+		this.totalcost = totalcost;
+	}
 	public int getId() {
 		return id;
 	}
