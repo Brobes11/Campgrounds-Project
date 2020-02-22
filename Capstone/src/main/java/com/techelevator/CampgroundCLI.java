@@ -230,7 +230,7 @@ public class CampgroundCLI {
 				if (canParse == true) {
 					departure = LocalDate.parse(userInput);
 					if (arrival.isBefore(departure)) {
-						smokiesVIP.setEndDate(arrival);
+						smokiesVIP.setEndDate(departure);
 					} else {
 						System.out.println("Cannot set end date before start date");
 						canParse = false;
@@ -258,19 +258,45 @@ public class CampgroundCLI {
 
 	private void handleDisplaySiteAvailability(Reservation campWithSmokey, Campground smokeysPlayhouse) {
 
-		Period days = Period.between(campWithSmokey.getStartOfRes(), campWithSmokey.getEndDate());
-		BigDecimal duration = new BigDecimal(days.getDays());
-		List<Site> smokeysFavoriteSites = site.listTopFiveAvailableBySiteId(smokeysPlayhouse.getId(),
-				campWithSmokey.getStartOfRes(), campWithSmokey.getEndDate());
-		System.out.format("%-15s %-15s %-15s %-15s %-15s %-15s \n", "Site No.", "Max Occup.", "Accessible?",
-				"Max RV Length", "Utility", "Cost");
-		for (Site site : smokeysFavoriteSites) {
-			System.out.format("%-15d %-15d %-15s %-15s %-15s %-15s \n", site.getSiteNumber(), site.getMaxOccupancy(),
-					convertBoolToString(site.isAccessible()), convertRvLengthToString(site.getMaxRvLength()),
-					convertBoolToString(site.isUtilities()), "$" + smokeysPlayhouse.getDailyFee().multiply(duration));
+		Boolean foundSites = false;
+		while (foundSites == false) {
+			//Code below finds duration of stay so we can multiply the daily fee for total cose of stay
+			Period days = Period.between(campWithSmokey.getStartOfRes(), campWithSmokey.getEndDate());
+			BigDecimal duration = new BigDecimal(days.getDays());
+			List<Site> smokeysFavoriteSites = site.listTopFiveAvailableBySiteId(smokeysPlayhouse.getId(),
+					campWithSmokey.getStartOfRes(), campWithSmokey.getEndDate());
+			System.out.format("%-15s %-15s %-15s %-15s %-15s %-15s \n", "Site No.", "Max Occup.", "Accessible?",
+					"Max RV Length", "Utility", "Cost");
+			for (Site site : smokeysFavoriteSites) {
+				System.out.format("%-15d %-15d %-15s %-15s %-15s %-15s \n", site.getSiteNumber(),
+						site.getMaxOccupancy(), convertBoolToString(site.isAccessible()),
+						convertRvLengthToString(site.getMaxRvLength()), convertBoolToString(site.isUtilities()),
+						"$" + smokeysPlayhouse.getDailyFee().multiply(duration));
 
+			}
+			if (smokeysFavoriteSites.size() == 0) {
+				System.out.print("Sorry , there are no sites available..\n"
+						+ "Would you like to search another date range?(y/n)");
+				String userInput = input.nextLine();
+				boolean correctlyAnswered = false;
+				while (correctlyAnswered == false) {
+					if (userInput.toLowerCase().equals("y")) {
+						handleInAndOut(smokeysPlayhouse);
+						correctlyAnswered = true;
+					} else if (userInput.toLowerCase().equals("n")) {
+						// return to top of cli
+						correctlyAnswered = true;
+					} else {
+						System.out
+								.println("User Input Invalid.\n" + "Would you like to search another date range?(y/n)");
+						userInput = input.nextLine();
+					}
+				}
+
+			} else {
+				handleCreateReservation(campWithSmokey, smokeysFavoriteSites);
+			}
 		}
-		handleCreateReservation(campWithSmokey, smokeysFavoriteSites);
 	}
 
 	private String convertBoolToString(boolean smokeySays) {

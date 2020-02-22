@@ -32,37 +32,6 @@ public class JDBCReservationDAO implements ReservationDAO{
 		return siteReservations;
 	}
 
-//	@Override
-//	public boolean reservationAvailable(int campgroundId, LocalDate startDate, int duration) {
-//		boolean result = false;
-//		String sql = "SELECT reservation_id, site_id, name, start_date, num_days, create_date "
-//				+ "FROM reservation WHERE site_id IN (SELECT site_id FROM site WHERE campground_id = ?) AND "
-//				+ "NOT (start_date, start_date + num_days) OVERLAPS (? , ? + ?)";
-//		SqlRowSet results = jdbcTemplate.queryForRowSet(sql, campgroundId, startDate, startDate, duration);
-//		while (results.next()) {
-//			result = true;
-//		}
-//		
-//		
-//		
-//		
-//		return result;
-//	}
-//
-//	@Override
-//	public List<Object> listTopFiveBySiteId(int campgroundId, LocalDate startDate, int duration) {
-//		List<>
-//		
-//		String sql = "SELECT reservation_id, site_id, name, start_date, num_days, create_date "
-//				+ "FROM reservation WHERE site_id IN (SELECT site_id FROM site WHERE campground_id = ?) AND "
-//				+ "NOT (start_date, start_date + num_days) OVERLAPS (? , ? + ?)";
-//		SqlRowSet results = jdbcTemplate.queryForRowSet(sql, campgroundId, startDate, startDate, duration);
-//		while (results.next()) {
-//			
-//		}
-//		return null;
-//	}
-
 	@Override
 	public Reservation createReservation(Reservation newRes) {
 		String sql = " INSERT INTO reservation(site_id,name,start_date,num_days)"

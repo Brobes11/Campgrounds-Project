@@ -33,8 +33,7 @@ public class JDBCCampgroundDAO implements CampgroundDAO {
 	@Override
 	public List<Campground> getAllCampgroundsByParkId(Park park) {
 		List<Campground> allCampgrounds = new ArrayList<Campground>();
-		String sql = "SELECT * FROM campground "
-				+ "WHERE park_id =? ORDER BY name;";
+		String sql = "SELECT * FROM campground WHERE park_id =? ORDER BY name;";
 		SqlRowSet results = jdbcTemplate.queryForRowSet(sql,park.getId());
 		while (results.next()) {
 			allCampgrounds.add(mapRowToCampground(results));
