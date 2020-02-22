@@ -26,7 +26,7 @@ public String getOpenToMM() {
 	return openToMM;
 }
 public BigDecimal getDailyFee() {
-	return dailyFee;
+	return dailyFee.setScale(2);
 }
 public void setId(int id) {
 	this.id = id;
@@ -44,7 +44,7 @@ public void setOpenToMM(String openToMM) {
 	this.openToMM = openToMM;
 }
 public void setDailyFee(BigDecimal dailyFee) {
-	this.dailyFee = dailyFee;
+	this.dailyFee = dailyFee.setScale(2);
 }
 
 

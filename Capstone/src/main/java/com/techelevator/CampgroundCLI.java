@@ -1,26 +1,21 @@
 package com.techelevator;
 
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 import javax.sql.DataSource;
-import javax.swing.text.DateFormatter;
 
 import org.apache.commons.dbcp2.BasicDataSource;
-import org.springframework.beans.propertyeditors.StringArrayPropertyEditor;
-import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.techelevator.model.Campground;
 import com.techelevator.model.Park;
-import com.techelevator.model.ParkDAO;
 import com.techelevator.model.Reservation;
 import com.techelevator.model.Site;
 import com.techelevator.model.jdbc.JDBCCampgroundDAO;
@@ -41,7 +36,7 @@ public class CampgroundCLI {
 	private static final String WHAT_IS_THE_ARRIVAL_DATE = "What is the arrival date?(YYYY-MM-DD)";
 	private static final String WHAT_IS_THE_DEPARTURE_DATE = "What is the departure date?(YYYY-MM-DD)";
 
-	private static final String[] PARK_SUB_MENU = new String[] { VIEW_CAMPGROUNDS, SEARCH_FOR_RESERVATIONS,
+	private static final String[] PARK_SUB_MENU = new String[] { VIEW_CAMPGROUNDS, /* SEARCH_FOR_RESERVATIONS, */
 			RETURN_TO_PREVIOUS_SCREEN };
 	private static final String[] CAMPGROUND_SUB_MENU = new String[] { SEARCH_FOR_AVAILABLE_RESERVATIONS,
 			RETURN_TO_PREVIOUS_SCREEN };
@@ -168,17 +163,8 @@ public class CampgroundCLI {
 		System.out.print("\n" + SELECT_A_COMMAND);
 		String choice = (String) menu.getChoiceFromOptions(CAMPGROUND_SUB_MENU);
 		if (choice.equals(SEARCH_FOR_AVAILABLE_RESERVATIONS)) {
-			
 			handleDisplayCampgroundInfo(park);
-			keepGoing = handleWhichCampground(park);
-			search = handleInAndOut(keepGoing);
-			if (keepGoing.equals("Cancel")) {
-				//goes back to main menu
-			}else {
-				handleDisplaySiteAvailability(search,(Campground)keepGoing);
-			}
-		
-		
+			handleWhichCampground(park);
 		} else if (choice.equals(RETURN_TO_PREVIOUS_SCREEN)) {
 			handleDisplayParkInfo(park);
 
@@ -186,7 +172,7 @@ public class CampgroundCLI {
 
 	}
 
-	private Object handleWhichCampground(Park park) {
+	private void handleWhichCampground(Park park) {
 		Object choice = null;
 		List<Campground> parkCampgrounds = campground.getAllCampgroundsByParkId(park);
 		while (choice == null) {
@@ -207,24 +193,32 @@ public class CampgroundCLI {
 			if (choice == null) {
 				System.out.println("\n*** " + userInput + " is not a valid option ***\n");
 			}
+			handleInAndOut(choice);
 		}
 
-		return choice;
 	}
 
-	private Reservation handleInAndOut(Object object) {
+	private void handleInAndOut(Object object) {
 		Reservation smokiesVIP = new Reservation();
 
 		if (object.equals("Cancel")) {
 			// do not continue with any menus
 		} else {
 			boolean canParse = false;
+			LocalDate arrival = null;
+			LocalDate departure = null;
 			while (canParse == false) {
 				System.out.print(WHAT_IS_THE_ARRIVAL_DATE);
 				String userInput = input.nextLine();
 				canParse = canInputParseDate(userInput);
 				if (canParse == true) {
-					smokiesVIP.setStartOfRes(LocalDate.parse(userInput));
+					arrival = LocalDate.parse(userInput);
+					if (LocalDate.now().isBefore(arrival)) {
+						smokiesVIP.setStartOfRes(arrival);
+					} else {
+						System.out.println("Cannot set reservation for past date");
+						canParse = false;
+					}
 				}
 
 			}
@@ -234,12 +228,18 @@ public class CampgroundCLI {
 				String userInput = input.nextLine();
 				canParse = canInputParseDate(userInput);
 				if (canParse == true) {
-					smokiesVIP.setEndDate(LocalDate.parse(userInput));
+					departure = LocalDate.parse(userInput);
+					if (arrival.isBefore(departure)) {
+						smokiesVIP.setEndDate(arrival);
+					} else {
+						System.out.println("Cannot set end date before start date");
+						canParse = false;
+					}
 				}
 
 			}
+			handleDisplaySiteAvailability(smokiesVIP, (Campground) object);
 		}
-		return smokiesVIP;
 	}
 
 	private boolean canInputParseDate(String userInput) {
@@ -262,21 +262,21 @@ public class CampgroundCLI {
 		BigDecimal duration = new BigDecimal(days.getDays());
 		List<Site> smokeysFavoriteSites = site.listTopFiveAvailableBySiteId(smokeysPlayhouse.getId(),
 				campWithSmokey.getStartOfRes(), campWithSmokey.getEndDate());
-		System.out.format("%15s %-15s %-15s %-15s %-15s %-15s \n", "Site No.", "Max Occup.", "Accessible?",
+		System.out.format("%-15s %-15s %-15s %-15s %-15s %-15s \n", "Site No.", "Max Occup.", "Accessible?",
 				"Max RV Length", "Utility", "Cost");
 		for (Site site : smokeysFavoriteSites) {
-			System.out.format("%15d %-15d %-15s %-15d %-15s %-15d \n", site.getId(), site.getMaxOccupancy(),
+			System.out.format("%-15d %-15d %-15s %-15s %-15s %-15s \n", site.getSiteNumber(), site.getMaxOccupancy(),
 					convertBoolToString(site.isAccessible()), convertRvLengthToString(site.getMaxRvLength()),
-					convertBoolToString(site.isUtilities()), smokeysPlayhouse.getDailyFee().multiply(duration));
+					convertBoolToString(site.isUtilities()), "$" + smokeysPlayhouse.getDailyFee().multiply(duration));
 
 		}
-
+		handleCreateReservation(campWithSmokey, smokeysFavoriteSites);
 	}
 
 	private String convertBoolToString(boolean smokeySays) {
-		String result = "yes";
+		String result = "Yes";
 		if (smokeySays == false) {
-			result = "no";
+			result = "No";
 		}
 		return result;
 	}
@@ -288,5 +288,43 @@ public class CampgroundCLI {
 
 		}
 		return result;
+	}
+
+	private void handleCreateReservation(Reservation siteReservation, List<Site> smokiesPicks) {
+
+		Object choice = null;
+		Map<Integer, Integer> siteIds = new HashMap<>();
+		for (Site s : smokiesPicks) {
+			siteIds.put(s.getSiteNumber(), s.getId());
+		}
+		while (choice == null) {
+			System.out.print("Which site should be reserved? (Enter 0 to cancel)");
+
+			String userInput = input.nextLine();
+			try {
+				int selectedOption = Integer.valueOf(userInput);
+				if (selectedOption == 0) {
+					choice = "Cancel";
+
+				} else if (siteIds.containsKey(selectedOption)) {
+					siteReservation.setSiteId(siteIds.get(selectedOption));
+					choice = "reserved";
+					System.out.println("What name would you like the reservation placed under?");
+					String reservationName = input.nextLine();
+					siteReservation.setName(reservationName);
+
+					Reservation finalReservation = reservation.createReservation(siteReservation);
+					System.out.println(
+							"The reservation has been made and the confirmation id is " + finalReservation.getId());
+
+				}
+			} catch (NumberFormatException n) {
+				// exception will be handled in the line below ..
+			}
+			if (choice == null) {
+				System.out.println("\n*** " + userInput + " is not a valid option ***\n");
+			}
+		}
+
 	}
 }

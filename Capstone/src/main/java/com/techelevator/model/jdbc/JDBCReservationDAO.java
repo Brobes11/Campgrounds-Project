@@ -1,6 +1,6 @@
 package com.techelevator.model.jdbc;
 
-import java.time.LocalDate;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -65,12 +65,13 @@ public class JDBCReservationDAO implements ReservationDAO{
 
 	@Override
 	public Reservation createReservation(Reservation newRes) {
-		String sql = " INSERT INTO reservation(reservation_id, site_id,name,start_date,num_days)"
-				+" VALUES(?,?,?,?,?) RETURNING create_date;";
-		SqlRowSet reservations = jdbcTemplate.queryForRowSet(sql, newRes.getId(),newRes.getSiteId(),newRes.getName(),
+		String sql = " INSERT INTO reservation(site_id,name,start_date,num_days)"
+				+" VALUES(?,?,?,?) RETURNING create_date,reservation_id;";
+		SqlRowSet reservations = jdbcTemplate.queryForRowSet(sql,newRes.getSiteId(),newRes.getName(),
 				newRes.getStartOfRes(),newRes.getDuration());
 		if(reservations.next()) {
 			newRes.setCreateDate(reservations.getDate("create_date").toLocalDate());
+			newRes.setId(reservations.getInt("reservation_id"));
 		}
 		return newRes;
 	}
