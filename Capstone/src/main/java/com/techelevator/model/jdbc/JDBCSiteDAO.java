@@ -34,7 +34,8 @@ public class JDBCSiteDAO implements SiteDAO {
 	@Override
 	public List<Site> listTopFiveAvailableBySiteId(int campgroundId, LocalDate startDate, LocalDate endDate) {
 		List<Site> smokeysTop5Available = new ArrayList<>();
-		String sql = "SELECT * FROM site WHERE campground_id = ? AND site_id NOT IN (SELECT site_id FROM reservation "
+		String sql = "SELECT  site_id, site_number, max_occupancy, accessible, max_rv_length, utilities, campground_id "
+				+ "FROM site WHERE campground_id = ? AND site_id NOT IN (SELECT site_id FROM reservation "
 				+ "WHERE (start_date, start_date + num_days) OVERLAPS (?, ?)) ORDER BY site_number LIMIT 5;";
 		SqlRowSet results = jdbcTemplate.queryForRowSet(sql, campgroundId, startDate, endDate);
 		while (results.next()) {

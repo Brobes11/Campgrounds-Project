@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,12 +73,16 @@ public class CampgroundCLI {
 
 	public void run() {
 		while (true) {
-			Object choice = handlePrintOptionsForParks(park.getAllParks().toArray());
-			if (choice.equals("Q")) {
-				System.exit(0);
-			} else {
-				handleDisplayParkInfo((Park) choice);
-			}
+			handleDisplayInitialMenu();
+		}
+	}
+	
+	private void handleDisplayInitialMenu(){
+		Object choice = handlePrintOptionsForParks(park.getAllParks().toArray());
+		if (choice.equals("Q")) {
+			System.exit(0);
+		} else {
+			handleDisplayParkInfo((Park) choice);
 		}
 	}
 
@@ -158,8 +163,6 @@ public class CampgroundCLI {
 	}
 
 	private void handleCampgroundSubMenu(Park park) {
-		Object keepGoing = null;
-		Reservation search = new Reservation();
 		System.out.print("\n" + SELECT_A_COMMAND);
 		String choice = (String) menu.getChoiceFromOptions(CAMPGROUND_SUB_MENU);
 		if (choice.equals(SEARCH_FOR_AVAILABLE_RESERVATIONS)) {
@@ -181,7 +184,7 @@ public class CampgroundCLI {
 			try {
 				int selectedOption = Integer.valueOf(userInput);
 				if (selectedOption == 0) {
-					choice = "Cancel";
+					choice = park;
 
 				} else if (selectedOption > 0 && selectedOption <= parkCampgrounds.size()) {
 					choice = parkCampgrounds.get(selectedOption - 1);
@@ -201,8 +204,8 @@ public class CampgroundCLI {
 	private void handleInAndOut(Object object) {
 		Reservation smokiesVIP = new Reservation();
 
-		if (object.equals("Cancel")) {
-			// do not continue with any menus
+		if (object instanceof Park) {
+			handleDisplayParkInfo((Park) object);
 		} else {
 			boolean canParse = false;
 			LocalDate arrival = null;
@@ -261,8 +264,8 @@ public class CampgroundCLI {
 		Boolean foundSites = false;
 		while (foundSites == false) {
 			//Code below finds duration of stay so we can multiply the daily fee for total cose of stay
-			Period days = Period.between(campWithSmokey.getStartOfRes(), campWithSmokey.getEndDate());
-			BigDecimal duration = new BigDecimal(days.getDays());
+			int days = (int)ChronoUnit.DAYS.between(campWithSmokey.getStartOfRes(), campWithSmokey.getEndDate());
+			BigDecimal duration = new BigDecimal(days);
 			List<Site> smokeysFavoriteSites = site.listTopFiveAvailableBySiteId(smokeysPlayhouse.getId(),
 					campWithSmokey.getStartOfRes(), campWithSmokey.getEndDate());
 			System.out.format("%-15s %-15s %-15s %-15s %-15s %-15s \n", "Site No.", "Max Occup.", "Accessible?",
@@ -331,7 +334,7 @@ public class CampgroundCLI {
 				int selectedOption = Integer.valueOf(userInput);
 				if (selectedOption == 0) {
 					choice = "Cancel";
-
+					handleDisplayInitialMenu();
 				} else if (siteIds.containsKey(selectedOption)) {
 					siteReservation.setSiteId(siteIds.get(selectedOption));
 					choice = "reserved";
@@ -342,6 +345,7 @@ public class CampgroundCLI {
 					Reservation finalReservation = reservation.createReservation(siteReservation);
 					System.out.println(
 							"The reservation has been made and the confirmation id is " + finalReservation.getId());
+					System.exit(0);
 
 				}
 			} catch (NumberFormatException n) {
@@ -350,6 +354,7 @@ public class CampgroundCLI {
 			if (choice == null) {
 				System.out.println("\n*** " + userInput + " is not a valid option ***\n");
 			}
+			
 		}
 
 	}
