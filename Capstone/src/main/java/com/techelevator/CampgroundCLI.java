@@ -30,7 +30,7 @@ public class CampgroundCLI {
 	private static final String SELECT_PARK = "Select a park for further details";
 	private static final String SELECT_A_COMMAND = "Select a command";
 	private static final String VIEW_CAMPGROUNDS = "View campgrounds :) ";
-	private static final String SEARCH_FOR_RESERVATIONS = "Search for reservations";
+	//private static final String SEARCH_FOR_RESERVATIONS = "Search for reservations";
 	private static final String RETURN_TO_PREVIOUS_SCREEN = "Return to previous screen";
 	private static final String SEARCH_FOR_AVAILABLE_RESERVATIONS = "Search for available reservation";
 	private static final String WHICH_CAMPGROUND = "Which campground ?(enter 0 to cancel)";
@@ -76,8 +76,8 @@ public class CampgroundCLI {
 			handleDisplayInitialMenu();
 		}
 	}
-	
-	private void handleDisplayInitialMenu(){
+
+	private void handleDisplayInitialMenu() {
 		Object choice = handlePrintOptionsForParks(park.getAllParks().toArray());
 		if (choice.equals("Q")) {
 			System.exit(0);
@@ -112,7 +112,7 @@ public class CampgroundCLI {
 
 				}
 			} catch (NumberFormatException e) {
-// eat the exception, an error message will be displayed below since the choice will be null. 
+				// eat the exception, an error message will be displayed below since the choice will be null. 
 			}
 			if (choice == null) {
 				System.out.println("\n*** " + userInput + " is not a valid option ***\n");
@@ -139,8 +139,6 @@ public class CampgroundCLI {
 		if (choice.equals(VIEW_CAMPGROUNDS)) {
 			handleDisplayCampgroundInfo(parks);
 			handleCampgroundSubMenu(parks);
-
-		} else if (choice.equals(SEARCH_FOR_RESERVATIONS)) {
 
 		} else if (choice.equals(RETURN_TO_PREVIOUS_SCREEN)) {
 			// While loop will kick us to main menu if selected
@@ -170,7 +168,7 @@ public class CampgroundCLI {
 			handleWhichCampground(park);
 		} else if (choice.equals(RETURN_TO_PREVIOUS_SCREEN)) {
 			handleDisplayParkInfo(park);
-
+			//Kicks to displaying park info which was the previous screen
 		}
 
 	}
@@ -185,7 +183,7 @@ public class CampgroundCLI {
 				int selectedOption = Integer.valueOf(userInput);
 				if (selectedOption == 0) {
 					choice = park;
-
+					//allows you to cancel out and go back to the previous menu.
 				} else if (selectedOption > 0 && selectedOption <= parkCampgrounds.size()) {
 					choice = parkCampgrounds.get(selectedOption - 1);
 
@@ -206,6 +204,7 @@ public class CampgroundCLI {
 
 		if (object instanceof Park) {
 			handleDisplayParkInfo((Park) object);
+			//If park is passed it means that they chose option 0 to cancel in previous menu
 		} else {
 			boolean canParse = false;
 			LocalDate arrival = null;
@@ -214,13 +213,16 @@ public class CampgroundCLI {
 				System.out.print(WHAT_IS_THE_ARRIVAL_DATE);
 				String userInput = input.nextLine();
 				canParse = canInputParseDate(userInput);
+				//Makes sure String can be parsed as a date and then tries to set date
 				if (canParse == true) {
 					arrival = LocalDate.parse(userInput);
 					if (LocalDate.now().isBefore(arrival)) {
+						//Makes sure this reservation is not set for a past date
 						smokiesVIP.setStartOfRes(arrival);
 					} else {
 						System.out.println("Cannot set reservation for past date");
 						canParse = false;
+						//Set to false so we can continue the loop and ask for another date
 					}
 				}
 
@@ -233,10 +235,12 @@ public class CampgroundCLI {
 				if (canParse == true) {
 					departure = LocalDate.parse(userInput);
 					if (arrival.isBefore(departure)) {
+						//Makes sure that departure is a date after the arrival date
 						smokiesVIP.setEndDate(departure);
 					} else {
 						System.out.println("Cannot set end date before start date");
 						canParse = false;
+						//Set false to make sure we go back to ask for departure date if it is invalid
 					}
 				}
 
@@ -263,11 +267,13 @@ public class CampgroundCLI {
 
 		Boolean foundSites = false;
 		while (foundSites == false) {
-			//Code below finds duration of stay so we can multiply the daily fee for total cose of stay
-			int days = (int)ChronoUnit.DAYS.between(campWithSmokey.getStartOfRes(), campWithSmokey.getEndDate());
+			// Code below finds duration of stay so we can multiply the daily fee for total cost of stay
+			int days = (int) ChronoUnit.DAYS.between(campWithSmokey.getStartOfRes(), campWithSmokey.getEndDate());
 			BigDecimal duration = new BigDecimal(days);
-			List<Site> smokeysFavoriteSites = site.listTopFiveAvailableBySiteId(smokeysPlayhouse.getId(),
+			List<Site> smokeysFavoriteSites = site.listTopFiveAvailableByCampgroundId(smokeysPlayhouse.getId(),
 					campWithSmokey.getStartOfRes(), campWithSmokey.getEndDate());
+			
+			//Print out the header for displaying available campsites
 			System.out.format("%-15s %-15s %-15s %-15s %-15s %-15s \n", "Site No.", "Max Occup.", "Accessible?",
 					"Max RV Length", "Utility", "Cost");
 			for (Site site : smokeysFavoriteSites) {
@@ -277,8 +283,10 @@ public class CampgroundCLI {
 						"$" + smokeysPlayhouse.getDailyFee().multiply(duration));
 
 			}
+			
+			//If no available sites are found it will ask if you want to search another range
 			if (smokeysFavoriteSites.size() == 0) {
-				System.out.print("Sorry , there are no sites available..\n"
+				System.out.print("Sorry , there are no sites available.\n"
 						+ "Would you like to search another date range?(y/n)");
 				String userInput = input.nextLine();
 				boolean correctlyAnswered = false;
@@ -287,11 +295,12 @@ public class CampgroundCLI {
 						handleInAndOut(smokeysPlayhouse);
 						correctlyAnswered = true;
 					} else if (userInput.toLowerCase().equals("n")) {
-						// return to top of cli
 						correctlyAnswered = true;
+						//Go back to main menu;
+						handleDisplayInitialMenu();
 					} else {
-						System.out
-								.println("User Input Invalid.\n" + "Would you like to search another date range?(y/n)");
+						System.out.println("User Input Invalid.\n" + 
+						"Would you like to search another date range?(y/n)");
 						userInput = input.nextLine();
 					}
 				}
@@ -301,7 +310,8 @@ public class CampgroundCLI {
 			}
 		}
 	}
-
+	
+	//Allows to convert some booleans from Database for display campsite info
 	private String convertBoolToString(boolean smokeySays) {
 		String result = "Yes";
 		if (smokeySays == false) {
@@ -310,6 +320,7 @@ public class CampgroundCLI {
 		return result;
 	}
 
+	//Allows us to print N/A when the max length is 0
 	private String convertRvLengthToString(int rvLength) {
 		String result = "" + rvLength;
 		if (rvLength == 0) {
@@ -337,7 +348,7 @@ public class CampgroundCLI {
 					handleDisplayInitialMenu();
 				} else if (siteIds.containsKey(selectedOption)) {
 					siteReservation.setSiteId(siteIds.get(selectedOption));
-					choice = "reserved";
+					choice = "Reserved";
 					System.out.println("What name would you like the reservation placed under?");
 					String reservationName = input.nextLine();
 					siteReservation.setName(reservationName);
@@ -354,8 +365,8 @@ public class CampgroundCLI {
 			if (choice == null) {
 				System.out.println("\n*** " + userInput + " is not a valid option ***\n");
 			}
-			
-		}
 
+		}
+		//If we want the loop to continue we could have id handleDisplayInitialMenu();
 	}
 }

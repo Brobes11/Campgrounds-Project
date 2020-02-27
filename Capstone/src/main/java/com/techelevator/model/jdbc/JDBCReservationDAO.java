@@ -36,6 +36,8 @@ public class JDBCReservationDAO implements ReservationDAO{
 	public Reservation createReservation(Reservation newRes) {
 		String sql = " INSERT INTO reservation(site_id,name,start_date,num_days)"
 				+" VALUES(?,?,?,?) RETURNING create_date,reservation_id;";
+		//Since the create date and reservation ID are created by the database 
+		//we return them in the query and add them to the object
 		SqlRowSet reservations = jdbcTemplate.queryForRowSet(sql,newRes.getSiteId(),newRes.getName(),
 				newRes.getStartOfRes(),newRes.getDuration());
 		if(reservations.next()) {
